@@ -11,7 +11,7 @@ locale.setlocale(locale.LC_COLLATE, 'zh_CN.UTF-8')
 
 workbook = openpyxl.Workbook()
 worksheet = workbook.active
-save_dir = "res"
+save_dir = "res/安徽"
 dir_names = os.listdir(save_dir)
 # sorted_dir_names = sorted(dir_names, key=locale.strxfrm)  # 这个文件夹是根据数字排序的，不是中文，所以暂时不用这个
 # col_names = ['文件名', '债权人', '债务人', '是否涉及多个债权人', '涉案村委会名称', '涉案村委会地址','借贷发生时间', '债权人上诉时间', '法院立案或判决时间', '纠纷的借贷本金', '借贷利率', '法院是否支持', '法院支持的债务金额'] # 13列
@@ -174,7 +174,7 @@ for dir_name in dir_names:  # 按数字排序
             prov, city, area = '/', '/', '/'
 
 
-        ans_list = ans_list[:4] + [prov] + [city] + [area] + [ans_list[4]] + ans_list[6:]  # [ans_list[5]]
+        ans_list = ans_list[:4] + [prov] + [city] + [area] + [ans_list[5]] + ans_list[6:]  # [ans_list[5]]
 
         # 确认解析出的长度是正确的
         try:

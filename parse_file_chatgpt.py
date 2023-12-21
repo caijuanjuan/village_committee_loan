@@ -74,6 +74,11 @@ def parse_file_using_chatgpt(file_path, question, is_reopen_browser):
     content = file.read()
     file.close()
 
+    # 去掉原文链接
+    if '.html' in content:
+        remain = content.split('.html')[1:]
+        content = ''.join(remain)
+
     # 输入内容
     pyperclip.copy(content+'\n'+question)  # 将内容复制到剪贴板
     time.sleep(wait_minus)
@@ -89,9 +94,10 @@ def parse_file_using_chatgpt(file_path, question, is_reopen_browser):
     time.sleep(wait_short)
     pyautogui.click()
     
-    text = '根据以上信息问答以下问题，若无法回答，请说明原因'
+    inherent_question = '根据以上信息，回答以下问题：'
+    text = '根据以上信息，回答以下问题：'
     times = 1
-    while '根据以上信息问答以下问题，若无法回答，请说明原因' in text:  # 回答中有这一句，说明网太慢，没有加载出来。需要延长等待时间，再等一轮
+    while inherent_question in text:  # 回答中有这一句，说明网太慢，没有加载出来。需要延长等待时间，再等一轮
         print('\n 等待第{}次'.format(times))
         
         # 若等待次数大于1，则可能出现了 regenerate
@@ -133,9 +139,9 @@ def parse_file_using_chatgpt(file_path, question, is_reopen_browser):
 
 
         ################# 若答案未生成，或未复制成功
-
+        inherent_question = '根据以上信息，回答以下问题：'
         # 若是regenerate之后的结果
-        if '根据以上信息问答以下问题，若无法回答，请说明原因' in text:
+        if inherent_question in text:
             # 复制输出到剪贴板
             time.sleep(wait_short)
             pyautogui.moveTo(copy_button2[0], copy_button2[1])
@@ -146,7 +152,7 @@ def parse_file_using_chatgpt(file_path, question, is_reopen_browser):
             text = pyperclip.paste()
         
         # 若regenerate后，还出现了“询问回答是否更好”的窗口
-        if '根据以上信息问答以下问题，若无法回答，请说明原因' in text:
+        if inherent_question in text:
             # 复制输出到剪贴板
             time.sleep(wait_short)
             pyautogui.moveTo(copy_button3[0], copy_button3[1])
@@ -163,7 +169,7 @@ def parse_file_using_chatgpt(file_path, question, is_reopen_browser):
             text = pyperclip.paste()
 
         # 若还是没得到，则可能超出了每小时字数限制，则必须等10分钟，再进行操作
-        if '根据以上信息问答以下问题，若无法回答，请说明原因' in text:
+        if inherent_question in text:
             # 复制空白输出到剪贴板
             time.sleep(wait_short)
             pyautogui.moveTo(copy_button_reach_limit[0], copy_button_reach_limit[1])
@@ -183,7 +189,7 @@ def parse_file_using_chatgpt(file_path, question, is_reopen_browser):
                 time.sleep(wait_mid)
                 break  # 跳出本次文件解析
 
-        if '根据以上信息问答以下问题，若无法回答，请说明原因' in text and times > 5:
+        if inherent_question in text and times > 5:
             text = '等待超过5次'
             # 刷新网页
             print('\n 刷新网页'.format(times))

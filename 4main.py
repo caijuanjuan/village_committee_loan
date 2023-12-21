@@ -8,9 +8,9 @@ from parse_file_wenxin import parse_file_using_wenxin
 locale.setlocale(locale.LC_COLLATE, 'zh_CN.UTF-8')
 
 
-mode = 'wenxin'  # 'chatgpt' 'wenxin'  # 根据情况修改
-data_dir = "/data/安徽"
-save_dir = 'res_安徽'
+mode = 'chatgpt'  # 'chatgpt' 'wenxin'  # 根据情况修改
+data_dir = "data/安徽"  # 根据情况修改
+save_dir = 'res/安徽'  # 根据情况修改
 
 check_dir(save_dir)
 chatgpt_str_limit = 5800
@@ -19,7 +19,7 @@ question = get_txt("question.txt")
 no_result_num = 0
 right_result_num = 0
 wrong_result_num = 0
-reopen_limit = 200  # 每200条关闭一次浏览器
+reopen_limit = 50  # 每50条关闭一次浏览器
 parse_num = 0
 is_reopen_browser = False  # 是否需要重启浏览器
 time.sleep(3)
@@ -82,7 +82,7 @@ for dir_name in dir_names:  # 数字顺序
                 wrong_result_num += 1
                 print(' ============ 第{}个未识别文件 ============ {}'.format(wrong_result_num, file_name))
                 print('total_len:', total_len)
-                print('\n以前的结果是：\n{} '.format(res))
+                print('\n以前的结果是：\n{} '.format(pre_res))
                 print('共{}行信息'.format(pre_res_len))
 
                 # if '由于提供的链接无法直接访问' not in res and \
