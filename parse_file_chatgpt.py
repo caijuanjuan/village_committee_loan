@@ -21,7 +21,7 @@ copy_button3 = (1076, 1271)  # regenerate后，如果还有“询问回答是否
 copy_button_reach_limit = (1096, 1276)
 
 close_button = (2522, 20)
-taskbar_google = (1246, 1564)
+taskbar_google = (312, 1565)
 bookmark_zhanghao = (711, 148)
 bookmark_haiwai = (739, 252)
 bookmark_chatgpt = (1009, 255)

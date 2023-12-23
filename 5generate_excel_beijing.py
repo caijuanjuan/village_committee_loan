@@ -11,11 +11,13 @@ locale.setlocale(locale.LC_COLLATE, 'zh_CN.UTF-8')
 
 workbook = openpyxl.Workbook()
 worksheet = workbook.active
-save_dir = "res/安徽"
+save_dir = "res/北京"
+save_excel_path = 'res_excel/北京.xlsx'
+wrong_res = []
 dir_names = os.listdir(save_dir)
 # sorted_dir_names = sorted(dir_names, key=locale.strxfrm)  # 这个文件夹是根据数字排序的，不是中文，所以暂时不用这个
 # col_names = ['文件名', '债权人', '债务人', '是否涉及多个债权人', '涉案村委会名称', '涉案村委会地址','借贷发生时间', '债权人上诉时间', '法院立案或判决时间', '纠纷的借贷本金', '借贷利率', '法院是否支持', '法院支持的债务金额'] # 13列
-col_names = ['文件名', '债权人', '债务人', '是否涉及多个债权人', '省、直辖市','地级市、区、自治州、盟', '市辖区、县级市、县', '涉案村委会名称', '借贷发生时间', '债权人上诉时间', '法院立案或判决时间', '纠纷的借贷本金', '借贷利率', '法院是否支持', '法院支持的债务金额'] # 13列
+col_names = ['文件名', '结果','债权人', '债务人', '是否涉及多个债权人', '省、直辖市','地级市、区、自治州、盟', '市辖区、县级市、县', '涉案村委会名称', '借贷发生时间', '债权人上诉时间', '法院立案或判决时间', '纠纷的借贷本金', '借贷利率', '债权人主张的利息金额', '法院是否支持', '法院支持的债务本金', '法院支持的利息金额', '是否不宜在互联网公布'] # 13列
 line_idx = 2
 
 def write_line(dt_list, write_line):
@@ -76,7 +78,8 @@ def get_prov_from_city(res):
             if city==res:
                 return prov, city
 
-
+dir_names.sort()  # 北京
+# dir_names.sort(key = lambda x: (int(x.split('-')[0]), int(x.split('-')[2][ : x.split('-')[2].index(')') ])))  # 安徽文件夹排序 先用第一个数字排序，再用括号里的排序
 for dir_name in dir_names:  # 按数字排序
     sub_save_dir = os.path.join(save_dir, dir_name)
     
@@ -88,22 +91,23 @@ for dir_name in dir_names:  # 按数字排序
 
         # 读取文件内容
         content = get_txt(file_path)
-        print(content)
+        content = content.replace('*', '')  # 若有加粗，则去除文本中的*号
 
         # 解析出答案
         suffix = file_name.split('__')[-1][:-4]  # chatgpt or wenxin
-        ans_list = [file_name.split('...')[0] + suffix]
+        ans_list = [file_name.split('...')[0] + suffix] + [content]
 
         # 解析 chatgpt 的结果
         if suffix=='chat':
-            ans_simple1 = content.split('. ')[1:]  # 以答题序号后的'.'分隔
+            # ans_simple1 = content.split('. ')[1:]  # 以答题序号后的'.'分隔
+            ans_simple1 = re.split('\d{1,}\. ', content)[1:]  # 以至少一位正实数 + '. ' 分隔
             ans_simple2 = [item.split('\n\n') if '\n\n' in item else item.split('\n') for item in ans_simple1]  # 以回车分隔
             for i,item in enumerate(ans_simple2):
                 if len(item)==1:  # 若没有回车
                     ans_simple2[i] = item[0] 
-                elif len(item)>1 and len(item[1])<=5:  # 若回车之后，长度小于5，即舍去
-                    ans_simple2[i] = item[0]
-                elif len(item)>1 and len(item[1])>5:  # 若回车之后，长度大于5，即全部保留
+                elif len(item)>1 and len(item[-1])<=5:  # 若最后一个长度小于5，即舍去
+                    ans_simple2[i] = "  ".join(item[:-1])
+                elif len(item)>1 and len(item[-1])>5:  # 若最后一个长度大于5，即全部保留
                     ans_simple2[i] = "  ".join(item)
 
             ans_simple3 = [item.split('：', 1)[1] if '：' in item else item for item in ans_simple2]  # 每一行，以第一个冒号分隔，取后面的内容
@@ -113,18 +117,23 @@ for dir_name in dir_names:  # 按数字排序
 
         # 解析 wenxin 的结果
         if suffix=='wenxin':
-            ans_simple1 = content.split('\n\n')
+            if '债权人' in content:
+                idx = content.index('债权人')  # 从债权人开始截取
+            content = content[idx:]
+            ans_simple1 = content.split('\n\n') if '\n\n' in content else content.split('\n')
             ans_simple2 = [item.split('：')[1] if '：' in item else item for item in ans_simple1]  # 每一行，以第一个冒号分隔，取后面的内容
             ans_simple3 = [item.split('.')[1] if '.' in item else item for item in ans_simple2]  # 每一行，以第一个冒号分隔，取后面的内容
             ans_simple4 = [item[:-1] if item.endswith('。') else item for item in ans_simple3]  # 每一行，以第一个冒号分隔，取后面的内容
-            ans_list = ans_list + ans_simple4
+            ans_list = ans_list + ans_simple4  
+            if len(ans_list)>len(col_names)-2:
+                ans_list = ans_list[:len(col_names)-2]  # 去掉尾部
 
         # 确认解析出的长度是正确的
         try:
             assert len(ans_list)==len(col_names)-2  # 其中第四个问题：人民法院名称，用于 省、市、区三列
         except:
-            ans_list = [file_name.split('...')[0]] + ['文件解析错误']*(len(col_names)-3)
-        
+            ans_list = [file_name.split('...')[0]+suffix]  + [content] + ['文件解析错误']*(len(col_names)-4)
+            wrong_res.append(file_name)  # 若这里长度错了，下面的长度肯定也错了，下面就不加了
 
         # 提取省、市、区
         prov, city, area = None, None, None
@@ -174,13 +183,13 @@ for dir_name in dir_names:  # 按数字排序
             prov, city, area = '/', '/', '/'
 
 
-        ans_list = ans_list[:4] + [prov] + [city] + [area] + [ans_list[5]] + ans_list[6:]  # [ans_list[5]]
+        ans_list = ans_list[:5] + [prov] + [city] + [area] + [ans_list[6]] + ans_list[7:]
 
         # 确认解析出的长度是正确的
         try:
             assert len(ans_list)==len(col_names)  # 其中第四个问题：人民法院名称，用于 省、市、区三列
         except:
-            ans_list = [file_name.split('...')[0]] + ['文件解析错误']*(len(col_names)-1)
+            ans_list = [file_name.split('...')[0]+suffix]  + [content] + ['文件解析错误']*(len(col_names)-2)
 
     
         # 写入表格
@@ -191,14 +200,17 @@ for dir_name in dir_names:  # 按数字排序
 # 遍历每个列并设置最合适的宽度
 for col in worksheet.columns:
     max_length = max([len(str(cell.value)) + 0.7 * len(re.findall(r'([\u4e00-\u9fa5])', str(cell.value))) for cell in col])
-    worksheet.column_dimensions[col[0].column_letter].width = min(50, max_length)  # (max_length + 2) * 0.8
+    worksheet.column_dimensions[col[0].column_letter].width = min(30, max_length)  # (max_length + 2) * 0.8
 # 加粗首行
 char_dx = [chr(i) for i in range(ord('A'), ord('Z')+1)]
 for i in range(len(col_names)):
     cell = worksheet[char_dx[i]+str(1)]
     cell.font = openpyxl.styles.Font(bold=True)
 # 保存工作簿
-workbook.save('result.xlsx')
+workbook.save(save_excel_path)
+
+print(' =================== 未识别文件 =================== ')
+print('\n'.join(wrong_res))
 
 
 

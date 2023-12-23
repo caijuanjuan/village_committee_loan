@@ -3,7 +3,7 @@ from utils import check_dir
 import shutil
 
 
-data_txt_dir = "data/安徽"
+data_txt_dir = "data/北京"
 data_doc_dir = data_txt_dir+'_doc'
 shutil.copytree(data_txt_dir, data_doc_dir)
 # check_dir(data_doc_dir)

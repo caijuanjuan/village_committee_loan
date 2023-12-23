@@ -18,6 +18,8 @@ stop_gen = (989, 1234)
 
 
 def parse_file_using_wenxin(file_path, question, pre_res):
+    idx = question.index('1.')  # 文心的问法，要删除第一句，直接以标号问句开头
+    question = question[idx:]
     
     # 览卷文档
     time.sleep(wait_short)
@@ -72,7 +74,10 @@ def parse_file_using_wenxin(file_path, question, pre_res):
     time.sleep(wait_long)
 
     text = pre_res
+    pyperclip.copy(pre_res)  # 粘贴板也置为以前的答案
+    wait_repeat = 1
     while text==pre_res:
+        print('\n 等待第{}次'.format(wait_repeat))
         time.sleep(5)  # 若还未生成答案，则再多等5s
 
         # 复制输出到剪贴板
@@ -88,6 +93,7 @@ def parse_file_using_wenxin(file_path, question, pre_res):
 
         # 从剪贴板读入
         text = pyperclip.paste()
+        wait_repeat += 1
 
     return text
 

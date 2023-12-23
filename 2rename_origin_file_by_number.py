@@ -3,14 +3,15 @@ import locale
 
 locale.setlocale(locale.LC_COLLATE, 'zh_CN.UTF-8')
 
-data_dir = "data/安徽"  # 按情况修改
+data_dir = "data/北京"  # 按情况修改
 dir_names = os.listdir(data_dir)
 # sorted_dir_names = sorted(dir_names, key=locale.strxfrm)  # 文件夹是根据数字排序的，不是中文，所以暂时不用这个
 
 # 将结果文件重命名--加上数字编号
 idx = 1
-# sorted_dir_names = sorted(dir_names, key=locale.strxfrm)
-dir_names.sort(key = lambda x: (int(x.split('-')[0]), int(x.split('-')[2][ : x.split('-')[2].index(')') ])))  # 先用第一个数字排序，再用括号里的排序
+dir_names.sort()
+print('\n'.join(dir_names))
+# dir_names.sort(key = lambda x: (int(x.split('-')[0]), int(x.split('-')[2][ : x.split('-')[2].index(')') ])))  # 安徽 先用第一个数字排序，再用括号里的排序
 for dir_name in dir_names:  # 按数字排序
     sub_data_dir = os.path.join(data_dir, dir_name)
     file_names = os.listdir(sub_data_dir)

@@ -1,4 +1,5 @@
 import os
+import re
 
 def get_txt(filename):
     file = open(filename, "r", encoding='utf-8')
@@ -24,3 +25,14 @@ def check_dir(dir):
     if not os.path.exists(dir):
         os.makedirs(dir, exist_ok=True)
     return 'hhh'
+
+def check_res_ok(file_path, res):
+    if file_path.endswith('chat.txt'):
+        if len(re.split('\d{1,}\. ', res)[1:])<15:
+            return False
+    if file_path.endswith('wenxin.txt'):
+        if len(res.split('\n\n'))<10:
+            return False
+    return True
+
+        
